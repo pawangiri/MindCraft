@@ -349,6 +349,11 @@ export default function CurriculumPlanner() {
       );
       setPlan(updated);
       setCurrentStep(3);
+      // Refresh previous plans to reflect updated status
+      api
+        .get("/curriculum/")
+        .then((r) => setPreviousPlans(r.data.results ?? r.data))
+        .catch(() => {});
     } catch (e: unknown) {
       const message =
         e && typeof e === "object" && "response" in e
