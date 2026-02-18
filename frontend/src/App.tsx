@@ -19,6 +19,8 @@ import ResearchPipeline from "./features/admin/ResearchPipeline";
 import ContentReview from "./features/admin/ContentReview";
 import CurriculumPlanner from "./features/admin/CurriculumPlanner";
 import MathPractice from "./features/math/MathPractice";
+import MathPracticeList from "./features/math/MathPracticeList";
+import MathPracticeNew from "./features/math/MathPracticeNew";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -47,6 +49,9 @@ export default function App() {
           <Route path="/lessons" element={<LessonList />} />
           <Route path="/lessons/:id" element={<LessonViewer />} />
           <Route path="/lessons/:id/practice" element={<MathPractice />} />
+          <Route path="/math-practice" element={<MathPracticeList />} />
+          <Route path="/math-practice/new" element={<MathPracticeNew />} />
+          <Route path="/math-practice/:sessionId" element={<MathPractice />} />
           <Route path="/chat" element={<ChatWindow />} />
           <Route path="/quizzes" element={<QuizList />} />
           <Route path="/quizzes/:id" element={<QuizPlayer />} />

@@ -117,10 +117,20 @@ class ChatSessionViewSet(viewsets.ModelViewSet):
 
         if session.context_type == ChatSession.ContextType.MATH and session.context_id:
             try:
-                lesson = Lesson.objects.get(id=session.context_id)
-                topic = lesson.topic.name if lesson.topic else "math"
-                return prompts.math_tutor_system_prompt(kid_name, grade, lesson.title, topic)
-            except Lesson.DoesNotExist:
-                pass
+                from mindcraft.math.models import MathPracticeSession
+                practice = MathPracticeSession.objects.get(id=session.context_id)
+                topic = practice.topic
+                # Get the latest problem for context
+                latest = practice.attempts.last()
+                problem_text = latest.problem_text if latest else topic
+                return prompts.math_tutor_system_prompt(kid_name, grade, problem_text, topic)
+            except MathPracticeSession.DoesNotExist:
+                # Fallback: try legacy lesson-based lookup
+                try:
+                    lesson = Lesson.objects.get(id=session.context_id)
+                    topic = lesson.topic.name if lesson.topic else "math"
+                    return prompts.math_tutor_system_prompt(kid_name, grade, lesson.title, topic)
+                except Lesson.DoesNotExist:
+                    pass
 
         return prompts.tutor_system_prompt(kid_name, grade, age)

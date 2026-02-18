@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { cn } from "../utils/cn";
 import {
   Brain, BookOpen, MessageCircle, PenTool, Trophy,
   LayoutDashboard, LogOut, Palette, ClipboardList, Settings,
-  Sparkles, Search, FileCheck, GraduationCap, Menu, X,
+  Sparkles, Search, FileCheck, GraduationCap, Menu, X, Calculator,
 } from "lucide-react";
 
 const kidNavItems = [
@@ -15,6 +15,7 @@ const kidNavItems = [
   { to: "/quizzes", icon: ClipboardList, label: "Quizzes" },
   { to: "/journal", icon: PenTool, label: "Journal" },
   { to: "/canvas", icon: Palette, label: "Canvas" },
+  { to: "/math-practice", icon: Calculator, label: "Math Practice" },
   { to: "/progress", icon: Trophy, label: "Progress" },
 ];
 
@@ -33,7 +34,9 @@ const adminNavItems = [
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const isAdmin = user?.is_staff;
+  const isFullWidth = location.pathname.startsWith("/chat");
   const navItems = isAdmin ? adminNavItems : kidNavItems;
   const profile = user?.kid_profile;
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -148,7 +151,7 @@ export default function Layout() {
             </span>
           </div>
         </div>
-        <div className="p-4 md:p-6 max-w-6xl mx-auto">
+        <div className={cn("p-4 md:p-6", isFullWidth ? "" : "max-w-6xl mx-auto")}>
           <Outlet />
         </div>
       </main>

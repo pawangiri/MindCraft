@@ -313,3 +313,35 @@ export interface CurriculumPlan {
   created_at: string;
   updated_at: string;
 }
+
+export interface MathPracticeSession {
+  id: number;
+  topic: string;
+  chat_session_id: number | null;
+  attempt_count: number;
+  correct_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MathPracticeSessionDetail {
+  id: number;
+  topic: string;
+  chat_session_id: number | null;
+  attempts: MathProblemAttempt[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MathProblemAttempt {
+  id: number;
+  problem_text: string;
+  difficulty: string;
+  hint: string;
+  canvas_image_url: string | null;
+  is_correct: boolean | null;
+  correct_answer: string;
+  feedback: string;
+  order: number;
+  created_at: string;
+}

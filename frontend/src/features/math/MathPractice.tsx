@@ -19,20 +19,27 @@ import {
   ChevronDown,
 } from "lucide-react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-import api, { type Lesson, type ChatMessage } from "../../api/client";
-import { generateProblem, evaluateAnswer } from "../../api/math";
+import type { ChatMessage, MathPracticeSessionDetail } from "../../api/client";
+import {
+  generateProblem,
+  evaluateAnswer,
+  getSession,
+  createAttempt,
+  updateAttempt,
+} from "../../api/math";
 import type { MathProblem, MathEvaluation } from "../../api/client";
 import { useAuthStore } from "../../stores/authStore";
 import { cn } from "../../utils/cn";
 
 export default function MathPractice() {
-  const { id } = useParams();
+  const { sessionId } = useParams();
   const user = useAuthStore((s) => s.user);
   const grade = user?.kid_profile?.grade_level ?? 4;
 
-  // Lesson state
-  const [lesson, setLesson] = useState<Lesson | null>(null);
+  // Session state
+  const [session, setSession] = useState<MathPracticeSessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
 
   // Problem state
   const [problem, setProblem] = useState<MathProblem | null>(null);
@@ -57,35 +64,31 @@ export default function MathPractice() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load lesson on mount
+  // Ref to hold latest session for use in fetchNewProblem
+  const sessionRef = useRef<MathPracticeSessionDetail | null>(null);
+  sessionRef.current = session;
+
+  // Load session on mount
   useEffect(() => {
-    if (!id) return;
-    api.get(`/lessons/${id}/`).then((r) => {
-      setLesson(r.data);
+    if (!sessionId) return;
+    getSession(Number(sessionId)).then((s) => {
+      setSession(s);
+      sessionRef.current = s;
+      setChatSessionId(s.chat_session_id);
+      // If session has attempts, show last problem; otherwise generate new
+      if (s.attempts.length > 0) {
+        const last = s.attempts[s.attempts.length - 1];
+        setProblem({ problem_text: last.problem_text, difficulty: last.difficulty, hint: last.hint });
+        setCurrentAttemptId(last.id);
+        if (last.is_correct !== null) {
+          setEvaluation({ correct: last.is_correct, correct_answer: last.correct_answer, feedback: last.feedback });
+        }
+      } else {
+        fetchNewProblem();
+      }
       setLoading(false);
     });
-  }, [id]);
-
-  // Generate first problem after lesson loads
-  useEffect(() => {
-    if (!lesson) return;
-    fetchNewProblem();
-  }, [lesson?.id]);
-
-  // Create chat session on mount
-  useEffect(() => {
-    if (!id) return;
-    api
-      .post("/chat/sessions/", {
-        title: "Math Tutor",
-        context_type: "math",
-        context_id: Number(id),
-      })
-      .then((r) => {
-        setChatSessionId(r.data.id);
-      })
-      .catch(() => {});
-  }, [id]);
+  }, [sessionId]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -93,13 +96,21 @@ export default function MathPractice() {
   }, [messages, streamingContent]);
 
   const fetchNewProblem = async () => {
-    if (!lesson) return;
+    const currentSession = sessionRef.current;
+    if (!currentSession) return;
     setGeneratingProblem(true);
     setEvaluation(null);
     setShowHint(false);
     try {
-      const p = await generateProblem(grade, lesson.topic_name);
+      const p = await generateProblem(grade, currentSession.topic);
       setProblem(p);
+      // Save to DB
+      const attempt = await createAttempt(currentSession.id, {
+        problem_text: p.problem_text,
+        difficulty: p.difficulty,
+        hint: p.hint,
+      });
+      setCurrentAttemptId(attempt.id);
     } catch {
       setProblem({
         problem_text: "Could not generate a problem. Please try again!",
@@ -111,7 +122,7 @@ export default function MathPractice() {
   };
 
   const handleSubmit = useCallback(async () => {
-    if (!excalidrawAPI || !problem) return;
+    if (!excalidrawAPI || !problem || !session || !currentAttemptId) return;
 
     const elements = excalidrawAPI.getSceneElements();
     if (elements.length === 0) return;
@@ -130,14 +141,24 @@ export default function MathPractice() {
         const reader = new FileReader();
         reader.onloadend = () => {
           const result = reader.result as string;
-          // Strip the data:image/png;base64, prefix
           resolve(result.split(",")[1]);
         };
         reader.readAsDataURL(blob);
       });
 
+      // Convert blob to File for upload
+      const file = new File([blob], "canvas.png", { type: "image/png" });
+
       const result = await evaluateAnswer(problem.problem_text, base64, grade);
       setEvaluation(result);
+
+      // Save to DB
+      await updateAttempt(session.id, currentAttemptId, {
+        canvas_image: file,
+        is_correct: result.correct,
+        correct_answer: result.correct_answer,
+        feedback: result.feedback,
+      });
     } catch {
       setEvaluation({
         correct: false,
@@ -147,7 +168,7 @@ export default function MathPractice() {
       });
     }
     setSubmitting(false);
-  }, [excalidrawAPI, problem, grade]);
+  }, [excalidrawAPI, problem, grade, session, currentAttemptId]);
 
   const handleTryAnother = () => {
     if (excalidrawAPI) {
@@ -262,7 +283,7 @@ export default function MathPractice() {
     }
   };
 
-  if (loading || !lesson) {
+  if (loading || !session) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -284,7 +305,7 @@ export default function MathPractice() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
           <Link
-            to={`/lessons/${id}`}
+            to="/math-practice"
             className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 text-sm font-medium shrink-0"
           >
             <ArrowLeft className="w-4 h-4" /> Back
@@ -292,7 +313,7 @@ export default function MathPractice() {
           <div className="flex items-center gap-2 min-w-0">
             <Calculator className="w-5 h-5 text-amber-500 shrink-0" />
             <span className="text-sm font-semibold text-gray-700 truncate">
-              {lesson.topic_name}
+              {session.topic}
             </span>
           </div>
         </div>

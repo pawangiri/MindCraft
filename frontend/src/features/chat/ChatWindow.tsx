@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import api, { type ChatSession, type ChatMessage } from "../../api/client";
 import { cn } from "../../utils/cn";
-import { Send, Plus, Bot, User, Loader2, MessageSquare } from "lucide-react";
+import { Send, Plus, Bot, User, Loader2, MessageSquare, Trash2 } from "lucide-react";
 
 export default function ChatWindow() {
   const [searchParams] = useSearchParams();
@@ -55,6 +55,16 @@ export default function ChatWindow() {
   const selectSession = (session: ChatSession) => {
     setActiveSession(session);
     setShowSessions(false);
+  };
+
+  const deleteSession = async (e: React.MouseEvent, sessionId: number) => {
+    e.stopPropagation();
+    await api.delete(`/chat/sessions/${sessionId}/`);
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    if (activeSession?.id === sessionId) {
+      setActiveSession(null);
+      setMessages([]);
+    }
   };
 
   const sendMessage = async () => {
@@ -165,21 +175,30 @@ export default function ChatWindow() {
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {sessions.map((session) => (
-            <button
+            <div
               key={session.id}
               onClick={() => selectSession(session)}
               className={cn(
-                "w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all",
+                "group w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all cursor-pointer flex items-start gap-2",
                 activeSession?.id === session.id
                   ? "bg-primary-50 text-primary-700 font-medium"
                   : "text-gray-600 hover:bg-gray-50"
               )}
             >
-              <div className="truncate font-medium">{session.title}</div>
-              <div className="text-xs text-gray-400 mt-0.5 truncate">
-                {session.last_message || "No messages yet"}
+              <div className="flex-1 min-w-0">
+                <div className="truncate font-medium">{session.title}</div>
+                <div className="text-xs text-gray-400 mt-0.5 truncate">
+                  {session.last_message || "No messages yet"}
+                </div>
               </div>
-            </button>
+              <button
+                onClick={(e) => deleteSession(e, session.id)}
+                className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all shrink-0 mt-0.5"
+                title="Delete chat"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           ))}
           {sessions.length === 0 && (
             <div className="text-center text-gray-400 text-sm py-8">

@@ -1,9 +1,82 @@
-from rest_framework.decorators import api_view, permission_classes
+from django.db import models as db_models
+from rest_framework import viewsets, status as drf_status
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from mindcraft.ai_service import generators
+from mindcraft.chat.models import ChatSession
+from .models import MathPracticeSession, MathProblemAttempt
+from .serializers import (
+    MathPracticeSessionListSerializer,
+    MathPracticeSessionDetailSerializer,
+    MathPracticeSessionCreateSerializer,
+    MathProblemAttemptSerializer,
+)
 from . import openai_client
+
+
+class MathPracticeSessionViewSet(viewsets.ModelViewSet):
+    """CRUD for math practice sessions, scoped to the logged-in kid."""
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return MathPracticeSession.objects.all()
+        if hasattr(user, "kid_profile"):
+            return MathPracticeSession.objects.filter(kid=user.kid_profile)
+        return MathPracticeSession.objects.none()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return MathPracticeSessionListSerializer
+        if self.action == "create":
+            return MathPracticeSessionCreateSerializer
+        return MathPracticeSessionDetailSerializer
+
+    def perform_create(self, serializer):
+        kid = self.request.user.kid_profile
+        # Create a linked chat session
+        chat_session = ChatSession.objects.create(
+            kid=kid,
+            title=f"Math: {serializer.validated_data['topic']}",
+            context_type=ChatSession.ContextType.MATH,
+        )
+        session = serializer.save(kid=kid, chat_session=chat_session)
+        # Set context_id to point to this practice session
+        chat_session.context_id = session.id
+        chat_session.save()
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["request"] = self.request
+        return ctx
+
+    @action(detail=True, methods=["post"])
+    def attempts(self, request, pk=None):
+        """Create a new problem attempt for this session."""
+        session = self.get_object()
+        serializer = MathProblemAttemptSerializer(
+            data=request.data, context=self.get_serializer_context()
+        )
+        serializer.is_valid(raise_exception=True)
+        # Auto-set order
+        last_order = session.attempts.aggregate(db_models.Max("order"))["order__max"] or 0
+        serializer.save(session=session, order=last_order + 1)
+        return Response(serializer.data, status=drf_status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["patch"], url_path=r"attempts/(?P<attempt_id>\d+)")
+    def update_attempt(self, request, pk=None, attempt_id=None):
+        """Update an attempt (canvas image, evaluation results)."""
+        session = self.get_object()
+        attempt = session.attempts.get(id=attempt_id)
+        serializer = MathProblemAttemptSerializer(
+            attempt, data=request.data, partial=True,
+            context=self.get_serializer_context(),
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 @api_view(["POST"])
