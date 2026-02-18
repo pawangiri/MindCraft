@@ -117,6 +117,7 @@ export default function LessonViewer() {
         {lesson.has_quiz && lesson.quiz_id && (
           <Link
             to={`/quizzes/${lesson.quiz_id}`}
+            state={{ lessonId: lesson.id }}
             className="bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-600 transition-all flex items-center gap-2"
           >
             <ClipboardList className="w-5 h-5" /> Take Quiz

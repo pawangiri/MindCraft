@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import api, { type Quiz, type QuizSubmitResult } from "../../api/client";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { type Quiz, type QuizSubmitResult } from "../../api/client";
+import { getQuiz, startQuiz, submitQuiz, getHint, type AnswerPayload } from "../../api/quizzes";
 import { cn } from "../../utils/cn";
 import {
   ArrowLeft,
@@ -14,12 +15,18 @@ import {
 } from "lucide-react";
 import QuizResult from "./QuizResult";
 
+// Answers can be a choice ID (number) or text (string) or unanswered (null)
+type AnswerValue = number | string | null;
+
 export default function QuizPlayer() {
   const { id } = useParams();
+  const location = useLocation();
+  const lessonId = (location.state as { lessonId?: number })?.lessonId ?? null;
+
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number | null>>({});
+  const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
   const [hint, setHint] = useState<string | null>(null);
@@ -29,8 +36,9 @@ export default function QuizPlayer() {
   const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    api.get(`/quizzes/${id}/`).then((r) => {
-      setQuiz(r.data);
+    if (!id) return;
+    getQuiz(id).then((data) => {
+      setQuiz(data);
       setLoading(false);
     });
   }, [id]);
@@ -44,16 +52,20 @@ export default function QuizPlayer() {
 
   const handleStart = async () => {
     try {
-      await api.post(`/quizzes/${id}/start/`);
+      await startQuiz(id!);
     } catch {
       // attempt might already exist, continue
     }
     setStarted(true);
   };
 
-  const handleSelectAnswer = (questionId: number, choiceId: number) => {
+  const handleSelectChoice = (questionId: number, choiceId: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: choiceId }));
     setHint(null);
+  };
+
+  const handleTextAnswer = (questionId: number, text: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: text }));
   };
 
   const handleGetHint = async () => {
@@ -64,11 +76,8 @@ export default function QuizPlayer() {
 
     setHintLoading(true);
     try {
-      const { data } = await api.post(`/quizzes/${id}/hint/`, {
-        question_id: question.id,
-        attempt_number: attemptNum,
-      });
-      setHint(data.hint);
+      const hintText = await getHint(id!, question.id, attemptNum);
+      setHint(hintText);
       setHintCount((prev) => ({ ...prev, [question.id]: attemptNum }));
     } catch {
       setHint("Hmm, I couldn't get a hint right now. Try your best!");
@@ -79,15 +88,23 @@ export default function QuizPlayer() {
   const handleSubmit = async () => {
     if (!quiz?.questions) return;
     setSubmitting(true);
-    const answerPayload = quiz.questions.map((q) => ({
-      question_id: q.id,
-      choice_id: answers[q.id] || null,
-    }));
+
+    const answerPayload: AnswerPayload[] = quiz.questions.map((q) => {
+      const answer = answers[q.id];
+      if (q.question_type === "fill_blank" || q.question_type === "short_answer") {
+        return {
+          question_id: q.id,
+          text_answer: typeof answer === "string" ? answer : "",
+        };
+      }
+      return {
+        question_id: q.id,
+        choice_id: typeof answer === "number" ? answer : null,
+      };
+    });
 
     try {
-      const { data } = await api.post(`/quizzes/${id}/submit/`, {
-        answers: answerPayload,
-      });
+      const data = await submitQuiz(id!, answerPayload);
       setResult(data);
     } catch {
       // handle error
@@ -105,7 +122,11 @@ export default function QuizPlayer() {
 
   const questions = quiz.questions || [];
   const totalQuestions = questions.length;
-  const answeredCount = Object.values(answers).filter((v) => v !== null).length;
+  const answeredCount = Object.entries(answers).filter(([, v]) => {
+    if (v === null || v === undefined) return false;
+    if (typeof v === "string") return v.trim().length > 0;
+    return true;
+  }).length;
 
   // Show result screen
   if (result) {
@@ -115,6 +136,7 @@ export default function QuizPlayer() {
         result={result}
         answers={answers}
         timeElapsed={timeElapsed}
+        lessonId={lessonId}
       />
     );
   }
@@ -159,6 +181,7 @@ export default function QuizPlayer() {
 
   const currentQuestion = questions[currentIndex];
   const currentHintCount = hintCount[currentQuestion.id] || 0;
+  const isChoiceType = currentQuestion.question_type === "multiple_choice" || currentQuestion.question_type === "true_false";
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -190,26 +213,30 @@ export default function QuizPlayer() {
 
       {/* Question navigation dots */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
-        {questions.map((q, i) => (
-          <button
-            key={q.id}
-            onClick={() => { setCurrentIndex(i); setHint(null); }}
-            className={cn(
-              "w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all",
-              i === currentIndex
-                ? "bg-primary-500 text-white scale-110"
-                : answers[q.id] != null
-                  ? "bg-success-500 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            )}
-          >
-            {answers[q.id] != null ? (
-              <CheckCircle2 className="w-4 h-4" />
-            ) : (
-              i + 1
-            )}
-          </button>
-        ))}
+        {questions.map((q, i) => {
+          const a = answers[q.id];
+          const isAnswered = a !== null && a !== undefined && (typeof a !== "string" || a.trim().length > 0);
+          return (
+            <button
+              key={q.id}
+              onClick={() => { setCurrentIndex(i); setHint(null); }}
+              className={cn(
+                "w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all",
+                i === currentIndex
+                  ? "bg-primary-500 text-white scale-110"
+                  : isAnswered
+                    ? "bg-success-500 text-white"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              )}
+            >
+              {isAnswered ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                i + 1
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Question card */}
@@ -227,38 +254,61 @@ export default function QuizPlayer() {
           {currentQuestion.question_text}
         </h2>
 
-        {/* Choices */}
-        <div className="space-y-3">
-          {currentQuestion.choices.map((choice) => {
-            const isSelected = answers[currentQuestion.id] === choice.id;
-            return (
-              <button
-                key={choice.id}
-                onClick={() => handleSelectAnswer(currentQuestion.id, choice.id)}
-                className={cn(
-                  "w-full text-left px-4 py-3.5 rounded-xl border-2 transition-all flex items-center gap-3",
-                  isSelected
-                    ? "border-primary-500 bg-primary-50 text-primary-800"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700"
-                )}
-              >
-                <div
+        {/* Render based on question type */}
+        {isChoiceType ? (
+          <div className="space-y-3">
+            {currentQuestion.choices.map((choice) => {
+              const isSelected = answers[currentQuestion.id] === choice.id;
+              return (
+                <button
+                  key={choice.id}
+                  onClick={() => handleSelectChoice(currentQuestion.id, choice.id)}
                   className={cn(
-                    "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                    "w-full text-left px-4 py-3.5 rounded-xl border-2 transition-all flex items-center gap-3",
                     isSelected
-                      ? "border-primary-500 bg-primary-500"
-                      : "border-gray-300"
+                      ? "border-primary-500 bg-primary-50 text-primary-800"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700"
                   )}
                 >
-                  {isSelected && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                  )}
-                </div>
-                <span className="font-medium text-sm">{choice.choice_text}</span>
-              </button>
-            );
-          })}
-        </div>
+                  <div
+                    className={cn(
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                      isSelected
+                        ? "border-primary-500 bg-primary-500"
+                        : "border-gray-300"
+                    )}
+                  >
+                    {isSelected && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <span className="font-medium text-sm">{choice.choice_text}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : currentQuestion.question_type === "fill_blank" ? (
+          <div>
+            <input
+              type="text"
+              value={typeof answers[currentQuestion.id] === "string" ? answers[currentQuestion.id] as string : ""}
+              onChange={(e) => handleTextAnswer(currentQuestion.id, e.target.value)}
+              placeholder="Type your answer here..."
+              className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-gray-900 font-medium transition-all text-base"
+            />
+          </div>
+        ) : (
+          /* short_answer */
+          <div>
+            <textarea
+              value={typeof answers[currentQuestion.id] === "string" ? answers[currentQuestion.id] as string : ""}
+              onChange={(e) => handleTextAnswer(currentQuestion.id, e.target.value)}
+              placeholder="Write your answer here..."
+              rows={4}
+              className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-gray-900 font-medium transition-all text-base resize-none"
+            />
+          </div>
+        )}
       </div>
 
       {/* Hint section */}

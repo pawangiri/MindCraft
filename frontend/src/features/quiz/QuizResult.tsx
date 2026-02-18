@@ -3,6 +3,7 @@ import type { Quiz, QuizSubmitResult } from "../../api/client";
 import { cn } from "../../utils/cn";
 import {
   ArrowLeft,
+  BookOpen,
   CheckCircle2,
   XCircle,
   Trophy,
@@ -13,11 +14,12 @@ import {
 interface QuizResultProps {
   quiz: Quiz;
   result: QuizSubmitResult;
-  answers: Record<number, number | null>;
+  answers: Record<number, number | string | null>;
   timeElapsed: number;
+  lessonId?: number | null;
 }
 
-export default function QuizResult({ quiz, result, answers, timeElapsed }: QuizResultProps) {
+export default function QuizResult({ quiz, result, answers, timeElapsed, lessonId }: QuizResultProps) {
   const questions = quiz.questions || [];
   const percentage = result.percentage;
 
@@ -101,8 +103,10 @@ export default function QuizResult({ quiz, result, answers, timeElapsed }: QuizR
             (r) => r.question_id === question.id
           );
           const isCorrect = questionResult?.is_correct ?? false;
-          const selectedId = questionResult?.selected_choice_id ?? answers[question.id];
+          const selectedId = questionResult?.selected_choice_id ?? (typeof answers[question.id] === "number" ? answers[question.id] : null);
           const correctId = questionResult?.correct_choice_id;
+          const isTextType = question.question_type === "fill_blank" || question.question_type === "short_answer";
+          const textAnswer = typeof answers[question.id] === "string" ? answers[question.id] as string : "";
 
           return (
             <div
@@ -128,35 +132,59 @@ export default function QuizResult({ quiz, result, answers, timeElapsed }: QuizR
                     {question.question_text}
                   </p>
 
-                  {/* Choices with correct/incorrect indicators */}
-                  <div className="space-y-1.5">
-                    {question.choices.map((choice) => {
-                      const isThisCorrect = choice.id === correctId;
-                      const wasThisSelected = choice.id === selectedId;
-
-                      return (
-                        <div
-                          key={choice.id}
-                          className={cn(
-                            "text-sm px-3 py-2 rounded-lg flex items-center gap-2",
-                            isThisCorrect
-                              ? "bg-green-50 text-green-800 font-medium"
-                              : wasThisSelected && !isThisCorrect
-                                ? "bg-red-50 text-red-700"
-                                : "text-gray-600"
-                          )}
-                        >
-                          {isThisCorrect && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
-                          )}
-                          {wasThisSelected && !isThisCorrect && (
-                            <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                          )}
-                          {choice.choice_text}
+                  {isTextType ? (
+                    /* Text answer review */
+                    <div className="space-y-2">
+                      <div
+                        className={cn(
+                          "text-sm px-3 py-2 rounded-lg",
+                          isCorrect
+                            ? "bg-green-50 text-green-800"
+                            : "bg-red-50 text-red-700"
+                        )}
+                      >
+                        <span className="font-medium">Your answer: </span>
+                        {textAnswer || <span className="italic text-gray-400">No answer</span>}
+                      </div>
+                      {/* Show correct answer from choices if available */}
+                      {!isCorrect && correctId && (
+                        <div className="text-sm px-3 py-2 rounded-lg bg-green-50 text-green-800">
+                          <span className="font-medium">Correct answer: </span>
+                          {question.choices.find((c) => c.id === correctId)?.choice_text}
                         </div>
-                      );
-                    })}
-                  </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Choice answer review */
+                    <div className="space-y-1.5">
+                      {question.choices.map((choice) => {
+                        const isThisCorrect = choice.id === correctId;
+                        const wasThisSelected = choice.id === selectedId;
+
+                        return (
+                          <div
+                            key={choice.id}
+                            className={cn(
+                              "text-sm px-3 py-2 rounded-lg flex items-center gap-2",
+                              isThisCorrect
+                                ? "bg-green-50 text-green-800 font-medium"
+                                : wasThisSelected && !isThisCorrect
+                                  ? "bg-red-50 text-red-700"
+                                  : "text-gray-600"
+                            )}
+                          >
+                            {isThisCorrect && (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                            )}
+                            {wasThisSelected && !isThisCorrect && (
+                              <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                            )}
+                            {choice.choice_text}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Explanation */}
                   {questionResult?.explanation && (
@@ -183,6 +211,14 @@ export default function QuizResult({ quiz, result, answers, timeElapsed }: QuizR
         >
           <RotateCcw className="w-4 h-4" /> Try Again
         </Link>
+        {lessonId && (
+          <Link
+            to={`/lessons/${lessonId}`}
+            className="bg-accent-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-accent-600 transition-all flex items-center gap-2"
+          >
+            <BookOpen className="w-4 h-4" /> Back to Lesson
+          </Link>
+        )}
         <Link
           to="/quizzes"
           className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-all"

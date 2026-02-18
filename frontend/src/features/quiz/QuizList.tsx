@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import api, { type Quiz } from "../../api/client";
+import { type Quiz } from "../../api/client";
+import { getQuizzes } from "../../api/quizzes";
 import { ClipboardList, ChevronRight, HelpCircle, Clock } from "lucide-react";
 
 export default function QuizList() {
@@ -10,8 +11,7 @@ export default function QuizList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/quizzes/").then((r) => {
-      let data: Quiz[] = r.data.results || r.data;
+    getQuizzes().then((data) => {
       if (lessonFilter) {
         const lid = parseInt(lessonFilter, 10);
         data = data.filter((q) => q.lesson_id === lid);
@@ -50,6 +50,7 @@ export default function QuizList() {
             <Link
               key={quiz.id}
               to={`/quizzes/${quiz.id}`}
+              state={{ lessonId: quiz.lesson_id }}
               className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group"
             >
               <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
