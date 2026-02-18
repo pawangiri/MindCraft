@@ -7,6 +7,7 @@ class ChatSession(models.Model):
         LESSON = "lesson", "Lesson Help"
         QUIZ_HELP = "quiz_help", "Quiz Help"
         CANVAS = "canvas", "Canvas"
+        MATH = "math", "Math Practice"
 
     kid = models.ForeignKey("core.KidProfile", on_delete=models.CASCADE, related_name="chat_sessions")
     title = models.CharField(max_length=200, default="New Chat")

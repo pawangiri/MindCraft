@@ -18,6 +18,7 @@ import LessonGenerator from "./features/admin/LessonGenerator";
 import ResearchPipeline from "./features/admin/ResearchPipeline";
 import ContentReview from "./features/admin/ContentReview";
 import CurriculumPlanner from "./features/admin/CurriculumPlanner";
+import MathPractice from "./features/math/MathPractice";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/lessons" element={<LessonList />} />
           <Route path="/lessons/:id" element={<LessonViewer />} />
+          <Route path="/lessons/:id/practice" element={<MathPractice />} />
           <Route path="/chat" element={<ChatWindow />} />
           <Route path="/quizzes" element={<QuizList />} />
           <Route path="/quizzes/:id" element={<QuizPlayer />} />

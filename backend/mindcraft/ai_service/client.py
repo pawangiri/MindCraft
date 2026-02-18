@@ -95,7 +95,7 @@ def _cli_build_cmd(model, system="", stream=False):
     if system:
         cmd.extend(["--system-prompt", system])
     if stream:
-        cmd.extend(["--output-format", "stream-json"])
+        cmd.extend(["--output-format", "stream-json", "--verbose"])
     return cmd
 
 
@@ -127,7 +127,12 @@ def _cli_chat_completion(messages, system, model, stream):
 
 
 class _CLITextStream:
-    """Mimics Anthropic's stream.text_stream using claude CLI stream-json output."""
+    """Mimics Anthropic's stream.text_stream using claude CLI stream-json output.
+
+    Handles two output formats:
+    - Legacy: {"type":"content_block_delta","delta":{"text":"..."}}
+    - Verbose (current): {"type":"assistant","message":{"content":[{"text":"..."}]}}
+    """
 
     def __init__(self, process):
         self._process = process
@@ -140,10 +145,21 @@ class _CLITextStream:
                 continue
             try:
                 data = json.loads(line)
+
+                # Legacy format: content_block_delta events
                 if data.get("type") == "content_block_delta":
                     text = data.get("delta", {}).get("text", "")
                     if text:
                         yield text
+
+                # Verbose format: full assistant message
+                elif data.get("type") == "assistant":
+                    message = data.get("message", {})
+                    for block in message.get("content", []):
+                        text = block.get("text", "")
+                        if text:
+                            yield text
+
             except json.JSONDecodeError:
                 continue
 

@@ -190,6 +190,31 @@ Give a hint appropriate for this level."""
     )
 
 
+def generate_math_problem(topic: str, grade_level: int) -> dict:
+    """Generate a math problem using AI.
+
+    Returns:
+        {"problem_text": str, "difficulty": str, "hint": str}
+    """
+    user_message = f"""Generate a math problem about: {topic}
+Grade level: {grade_level}
+
+Remember to respond with ONLY valid JSON."""
+
+    response = client.chat_completion(
+        messages=[{"role": "user", "content": user_message}],
+        system=prompts.MATH_PROBLEM_PROMPT,
+        model=settings.AI_MODEL,
+    )
+
+    # Parse JSON from response (handle markdown code blocks)
+    json_str = response.strip()
+    if json_str.startswith("```"):
+        json_str = "\n".join(json_str.split("\n")[1:-1])
+
+    return json.loads(json_str)
+
+
 def generate_curriculum_outline(
     concept: str,
     grade_level: int,

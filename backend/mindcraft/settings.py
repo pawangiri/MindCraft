@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "mindcraft.chat",
     "mindcraft.journal",
     "mindcraft.progress",
+    "mindcraft.math",
 ]
 
 MIDDLEWARE = [
@@ -107,10 +108,14 @@ REST_FRAMEWORK = {
 # AI Configuration
 AI_BACKEND = os.getenv("AI_BACKEND", "cli")  # "cli" = Claude Code CLI, "api" = Anthropic API
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-AI_MODEL = os.getenv("AI_MODEL", "claude-sonnet-4-5-20250929")
+AI_MODEL = os.getenv("AI_MODEL", "claude-sonnet-4-6")
 AI_MODEL_CHAT = os.getenv("AI_MODEL_CHAT", "claude-haiku-4-5-20251001")
 AI_MAX_TOKENS = int(os.getenv("AI_MAX_TOKENS", "4096"))
 AI_DEFAULT_DAILY_CHAT_LIMIT = int(os.getenv("AI_DEFAULT_DAILY_CHAT_LIMIT", "50"))
+
+# OpenAI Configuration (used for math answer evaluation via vision)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 # Perplexity Configuration
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY", "")

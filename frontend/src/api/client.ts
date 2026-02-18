@@ -280,6 +280,18 @@ export interface CurriculumLesson {
   learning_objectives: string;
 }
 
+export interface MathProblem {
+  problem_text: string;
+  difficulty: string;
+  hint: string;
+}
+
+export interface MathEvaluation {
+  correct: boolean;
+  correct_answer: string;
+  feedback: string;
+}
+
 export interface CurriculumPlan {
   id: number;
   title: string;

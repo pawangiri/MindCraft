@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import api, { type Lesson } from "../../api/client";
 import {
-  ArrowLeft, Clock, Zap, BookCheck, MessageCircle, ClipboardList,
+  ArrowLeft, Clock, Zap, BookCheck, MessageCircle, ClipboardList, Calculator,
 } from "lucide-react";
 
 export default function LessonViewer() {
@@ -121,6 +121,15 @@ export default function LessonViewer() {
             className="bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-600 transition-all flex items-center gap-2"
           >
             <ClipboardList className="w-5 h-5" /> Take Quiz
+          </Link>
+        )}
+
+        {lesson.subject_name?.toLowerCase().includes("math") && (
+          <Link
+            to={`/lessons/${id}/practice`}
+            className="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
+          >
+            <Calculator className="w-5 h-5" /> Practice Math
           </Link>
         )}
       </div>

@@ -13,4 +13,5 @@ urlpatterns = [
     path("api/v1/chat/", include("mindcraft.chat.urls")),
     path("api/v1/journal/", include("mindcraft.journal.urls")),
     path("api/v1/progress/", include("mindcraft.progress.urls")),
+    path("api/v1/math/", include("mindcraft.math.urls")),
 ]

@@ -115,4 +115,12 @@ class ChatSessionViewSet(viewsets.ModelViewSet):
             except Lesson.DoesNotExist:
                 pass
 
+        if session.context_type == ChatSession.ContextType.MATH and session.context_id:
+            try:
+                lesson = Lesson.objects.get(id=session.context_id)
+                topic = lesson.topic.name if lesson.topic else "math"
+                return prompts.math_tutor_system_prompt(kid_name, grade, lesson.title, topic)
+            except Lesson.DoesNotExist:
+                pass
+
         return prompts.tutor_system_prompt(kid_name, grade, age)
