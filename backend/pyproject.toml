@@ -1,0 +1,14 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.79.0",
+    "django>=6.0.2",
+    "django-cors-headers>=4.9.0",
+    "djangorestframework>=3.16.1",
+    "openai>=1.50.0",
+    "python-dotenv>=1.2.1",
+]
