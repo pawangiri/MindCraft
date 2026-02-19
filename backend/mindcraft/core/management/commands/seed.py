@@ -31,9 +31,8 @@ class Command(BaseCommand):
 
         # Create kid users
         kids_data = [
-            {"username": "alex", "display_name": "Alex", "avatar": "🦊", "grade_level": 3, "password": "alex123"},
-            {"username": "sam", "display_name": "Sam", "avatar": "🐲", "grade_level": 6, "password": "sam123"},
-            {"username": "jordan", "display_name": "Jordan", "avatar": "🦉", "grade_level": 9, "password": "jordan123"},
+            {"username": "aaria123", "display_name": "Aaria", "avatar": "🌸", "grade_level": 4, "password": "alex123"},
+            {"username": "atharva123", "display_name": "Atharva", "avatar": "🚀", "grade_level": 9, "password": "jordan123"},
         ]
 
         for kid_data in kids_data:
@@ -147,9 +146,9 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("\n🎉 Seeding complete!"))
         self.stdout.write("\nLogin credentials:")
-        self.stdout.write("  Admin: parent / mindcraft")
+        self.stdout.write("  Admin:  parent / mindcraft")
         for kid in kids_data:
-            self.stdout.write(f"  Kid: {kid['username']} / {kid['password']} (Grade {kid['grade_level']})")
+            self.stdout.write(f"  Kid:    {kid['username']} / {kid['password']} (Grade {kid['grade_level']})")
 
 
 SAMPLE_LESSON_CONTENT = """# What is Money and Why Do We Need It?

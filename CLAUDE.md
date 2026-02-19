@@ -32,7 +32,7 @@ Frontend proxies `/api` requests to `localhost:8000` via Vite config, so both se
 
 ### Seed Accounts
 - Admin: `parent` / `mindcraft`
-- Kids: `alex` / `alex123` (Grade 3), `sam` / `sam123` (Grade 6), `jordan` / `jordan123` (Grade 9)
+- Kids: `aaria123` / `alex123` (Grade 4), `atharva123` / `jordan123` (Grade 9)
 
 ## Architecture
 

@@ -15,8 +15,6 @@ import {
   XCircle,
   Calculator,
   MessageCircle,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import type { ChatMessage, MathPracticeSessionDetail } from "../../api/client";
@@ -300,8 +298,8 @@ export default function MathPractice() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-7rem)] md:h-[calc(100vh-5rem)] gap-3">
-      {/* Left Panel: Canvas + Problem */}
-      <div className="flex flex-col flex-[3] min-h-0">
+      {/* Main Panel: Canvas + Problem */}
+      <div className="flex flex-col flex-1 min-h-0 min-w-0">
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
           <Link
@@ -448,30 +446,27 @@ export default function MathPractice() {
             <Trash2 className="w-4 h-4" /> Clear
           </button>
 
-          {/* Mobile chat toggle */}
           <button
             onClick={() => setChatOpen(!chatOpen)}
-            className="md:hidden ml-auto bg-accent-500 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-accent-600 transition-all flex items-center gap-2 text-sm"
+            className={cn(
+              "ml-auto px-4 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm",
+              chatOpen
+                ? "bg-accent-100 text-accent-700 hover:bg-accent-200"
+                : "bg-accent-500 text-white hover:bg-accent-600"
+            )}
           >
             <MessageCircle className="w-4 h-4" />
-            Tutor
-            {chatOpen ? (
-              <ChevronDown className="w-3 h-3" />
-            ) : (
-              <ChevronUp className="w-3 h-3" />
-            )}
+            Math Tutor
           </button>
         </div>
       </div>
 
-      {/* Right Panel: Chat Tutor */}
+      {/* Right Panel: Chat Tutor (collapsible) */}
+      {chatOpen && (
       <div
         className={cn(
-          "flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all",
-          "md:flex-[2] md:min-h-0",
-          chatOpen
-            ? "h-80 mt-3 md:mt-0 md:h-auto"
-            : "hidden md:flex md:h-auto"
+          "flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden",
+          "h-80 mt-3 md:mt-0 md:h-auto md:w-80 md:shrink-0 md:min-h-0"
         )}
       >
         {/* Chat Header */}
@@ -534,6 +529,7 @@ export default function MathPractice() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
