@@ -2,17 +2,17 @@
   "name": "mindcraft",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && uv run python manage.py runserver",
-    "dev:frontend": "cd frontend && npm run dev",
-    "install:frontend": "cd frontend && npm install",
+    "dev": "concurrently -n backend,frontend -c blue,green \"bun run dev:backend\" \"bun run dev:frontend\"",
+    "dev:backend": "cd backend && uv run python manage.py runserver 5000",
+    "dev:frontend": "cd frontend && bun run dev",
+    "install:frontend": "cd frontend && bun install",
     "install:backend": "cd backend && uv sync",
-    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:all": "bun run install:backend && bun run install:frontend",
     "migrate": "cd backend && uv run python manage.py migrate",
     "makemigrations": "cd backend && uv run python manage.py makemigrations",
     "seed": "cd backend && uv run python manage.py seed",
-    "build": "cd frontend && npm run build",
-    "lint": "cd frontend && npm run lint"
+    "build": "cd frontend && bun run build",
+    "lint": "cd frontend && bun run lint"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
