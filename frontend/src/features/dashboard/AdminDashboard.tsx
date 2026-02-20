@@ -26,7 +26,7 @@ export default function AdminDashboard() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           Welcome back, {user?.first_name || "Parent"}! 👋
         </h1>
-        <p className="text-gray-500 mt-1">Here's your MindCraft overview.</p>
+        <p className="text-gray-500 mt-1">Here's your Learning Monk overview.</p>
       </div>
 
       {/* Stats */}

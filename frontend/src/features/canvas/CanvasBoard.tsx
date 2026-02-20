@@ -28,7 +28,7 @@ export default function CanvasBoard() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `mindcraft-drawing-${Date.now()}.png`;
+      link.download = `learning-monk-drawing-${Date.now()}.png`;
       link.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -80,7 +80,7 @@ export default function CanvasBoard() {
         <Excalidraw
           excalidrawAPI={(api) => setExcalidrawAPI(api)}
           theme="light"
-          name="MindCraft Canvas"
+          name="Learning Monk Canvas"
           UIOptions={{
             canvasActions: {
               loadScene: false,

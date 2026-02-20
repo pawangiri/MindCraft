@@ -43,7 +43,7 @@ export default function LoginPage() {
             <Brain className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl sm:text-5xl font-bold text-white drop-shadow-lg" style={{ fontFamily: "var(--font-display)" }}>
-            MindCraft
+            Learning Monk
           </h1>
           <p className="text-white/80 mt-2 text-lg">Where learning becomes an adventure! ✨</p>
         </div>

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MindCraft is a local family learning platform. Parents/admins create AI-assisted educational content; kids learn through interactive lessons, quizzes, AI chat tutoring, drawing, and journaling. Built with Django + DRF backend and React + TypeScript frontend.
+Learning Monk is a local family learning platform. Parents/admins create AI-assisted educational content; kids learn through interactive lessons, quizzes, AI chat tutoring, drawing, and journaling. Built with Django + DRF backend and React + TypeScript frontend.
 
 ## Development Commands
 

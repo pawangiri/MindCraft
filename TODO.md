@@ -1,4 +1,4 @@
-# MindCraft — Task Breakdown
+# Learning Monk — Task Breakdown
 
 Status: ✅ Done | 🔧 In Progress | ⬜ Todo
 

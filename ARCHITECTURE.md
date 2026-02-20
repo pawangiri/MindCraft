@@ -1,8 +1,8 @@
-# MindCraft — Architecture Guide
+# Learning Monk — Architecture Guide
 
 ## Overview
 
-MindCraft is a local family learning platform where parents create and curate AI-assisted educational content, and kids learn through interactive lessons, quizzes, AI chat tutoring, canvas/drawing, and journaling.
+Learning Monk is a local family learning platform where parents create and curate AI-assisted educational content, and kids learn through interactive lessons, quizzes, AI chat tutoring, canvas/drawing, and journaling.
 
 ## Tech Stack
 

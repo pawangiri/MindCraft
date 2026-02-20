@@ -1,4 +1,4 @@
-# 🧠 MindCraft
+# 🧠 Learning Monk
 
 A local family learning platform where parents create AI-assisted educational content, and kids learn through interactive lessons, quizzes, AI chat tutoring, drawing, and journaling.
 
@@ -36,7 +36,7 @@ npm install
 npm run dev
 ```
 
-### 3. Open MindCraft
+### 3. Open Learning Monk
 
 - **Frontend:** http://localhost:5173
 - **Django Admin:** http://localhost:8000/admin/
@@ -88,7 +88,7 @@ See [TODO.md](./TODO.md) for task breakdown and agent handoff instructions.
 
 ## AI Features
 
-MindCraft uses Claude for:
+Learning Monk uses Claude for:
 - **Chat Tutor** — Age-appropriate AI tutor per kid, with lesson context
 - **Lesson Generator** — Admin generates lessons by topic + grade
 - **Quiz Generator** — Auto-generate quizzes from lesson content

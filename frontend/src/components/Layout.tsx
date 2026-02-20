@@ -72,7 +72,7 @@ export default function Layout() {
               <Brain className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-              MindCraft
+              Learning Monk
             </span>
           </div>
           <button onClick={closeSidebar} className="md:hidden p-1 text-white/60 hover:text-white">
@@ -147,7 +147,7 @@ export default function Layout() {
               <Brain className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-900" style={{ fontFamily: "var(--font-display)" }}>
-              MindCraft
+              Learning Monk
             </span>
           </div>
         </div>

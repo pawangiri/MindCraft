@@ -1,4 +1,4 @@
-"""Seed the database with initial data for MindCraft."""
+"""Seed the database with initial data for Learning Monk."""
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = "Seed the database with sample data"
 
     def handle(self, *args, **options):
-        self.stdout.write("🌱 Seeding MindCraft database...")
+        self.stdout.write("🌱 Seeding Learning Monk database...")
 
         # Create admin/parent user
         admin, created = User.objects.get_or_create(

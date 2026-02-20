@@ -1,5 +1,5 @@
 {
-  "name": "mindcraft",
+  "name": "learning-monk",
   "private": true,
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"bun run dev:backend\" \"bun run dev:frontend\"",
