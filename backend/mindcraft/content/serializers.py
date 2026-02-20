@@ -21,14 +21,23 @@ class LessonListSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source="topic.subject.name", read_only=True)
     subject_icon = serializers.CharField(source="topic.subject.icon", read_only=True)
     subject_color = serializers.CharField(source="topic.subject.color", read_only=True)
+    has_quiz = serializers.SerializerMethodField()
+    quiz_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
         fields = [
             "id", "title", "description", "topic_name", "subject_name",
             "subject_icon", "subject_color", "grade_level", "difficulty",
-            "estimated_minutes", "status", "ai_generated", "created_at",
+            "estimated_minutes", "status", "ai_generated", "has_quiz", "quiz_id", "created_at",
         ]
+
+    def get_has_quiz(self, obj):
+        return obj.quizzes.filter(is_active=True).exists()
+
+    def get_quiz_id(self, obj):
+        quiz = obj.quizzes.filter(is_active=True).first()
+        return quiz.id if quiz else None
 
 
 class LessonDetailSerializer(serializers.ModelSerializer):
