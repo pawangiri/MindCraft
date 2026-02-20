@@ -46,13 +46,15 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     subject_icon = serializers.CharField(source="topic.subject.icon", read_only=True)
     has_quiz = serializers.SerializerMethodField()
     quiz_id = serializers.SerializerMethodField()
+    quiz_best_score = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
         fields = [
             "id", "title", "description", "content", "topic", "topic_name",
             "subject_name", "subject_icon", "grade_level", "difficulty",
-            "estimated_minutes", "status", "ai_generated", "has_quiz", "quiz_id", "created_at",
+            "estimated_minutes", "status", "ai_generated", "has_quiz", "quiz_id",
+            "quiz_best_score", "created_at",
         ]
 
     def get_has_quiz(self, obj):
@@ -61,6 +63,25 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     def get_quiz_id(self, obj):
         quiz = obj.quizzes.filter(is_active=True).first()
         return quiz.id if quiz else None
+
+    def get_quiz_best_score(self, obj):
+        request = self.context.get("request")
+        if not request or not hasattr(request.user, "kid_profile"):
+            return None
+        from mindcraft.quiz.models import QuizAttempt
+        quiz = obj.quizzes.filter(is_active=True).first()
+        if not quiz:
+            return None
+        attempt = QuizAttempt.objects.filter(
+            quiz=quiz, kid=request.user.kid_profile, completed_at__isnull=False
+        ).order_by("-score").first()
+        if not attempt:
+            return None
+        return {
+            "score": attempt.score,
+            "max_score": attempt.max_score,
+            "percentage": round(attempt.score / attempt.max_score * 100) if attempt.max_score > 0 else 0,
+        }
 
 
 class LessonCreateSerializer(serializers.ModelSerializer):

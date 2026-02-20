@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import api, { type Lesson } from "../../api/client";
+import { cn } from "../../utils/cn";
 import {
   ArrowLeft, Clock, Zap, BookCheck, MessageCircle, ClipboardList, Calculator,
 } from "lucide-react";
@@ -91,47 +92,79 @@ export default function LessonViewer() {
       </div>
 
       {/* Actions */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-wrap items-center gap-3">
-        {completed ? (
-          <div className="flex items-center gap-2 text-success-500 font-semibold">
-            <BookCheck className="w-5 h-5" /> Lesson Complete! 🎉
-          </div>
-        ) : (
-          <button
-            onClick={handleComplete}
-            disabled={completing}
-            className="bg-success-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-emerald-600 transition-all flex items-center gap-2 disabled:opacity-60"
-          >
-            <BookCheck className="w-5 h-5" />
-            {completing ? "Saving..." : "Mark as Complete"}
-          </button>
-        )}
-
-        <Link
-          to={`/chat?lesson=${id}`}
-          className="bg-accent-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-accent-600 transition-all flex items-center gap-2"
-        >
-          <MessageCircle className="w-5 h-5" /> Ask AI Tutor
-        </Link>
-
+      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        {/* Quiz card — prominent if quiz exists */}
         {lesson.has_quiz && lesson.quiz_id && (
-          <Link
-            to={`/quizzes/${lesson.quiz_id}`}
-            state={{ lessonId: lesson.id }}
-            className="bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-600 transition-all flex items-center gap-2"
+          <div
+            className={cn(
+              "rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3",
+              lesson.quiz_best_score
+                ? "bg-green-50 border border-green-200"
+                : "bg-primary-50 border border-primary-200"
+            )}
           >
-            <ClipboardList className="w-5 h-5" /> Take Quiz
-          </Link>
+            <div className="flex-1">
+              <div className="font-semibold text-gray-900 flex items-center gap-2">
+                <ClipboardList className="w-5 h-5" />
+                {lesson.quiz_best_score
+                  ? `You scored ${lesson.quiz_best_score.percentage}%!`
+                  : "Ready to test your knowledge?"}
+              </div>
+              <p className="text-sm text-gray-600 mt-0.5">
+                {lesson.quiz_best_score
+                  ? `${lesson.quiz_best_score.score}/${lesson.quiz_best_score.max_score} points — try again to improve!`
+                  : "Take a quick quiz to see how well you understood this lesson."}
+              </p>
+            </div>
+            <Link
+              to={`/quizzes/${lesson.quiz_id}`}
+              state={{ lessonId: lesson.id }}
+              className={cn(
+                "px-5 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 shrink-0",
+                lesson.quiz_best_score
+                  ? "bg-green-500 text-white hover:bg-green-600"
+                  : "bg-primary-500 text-white hover:bg-primary-600"
+              )}
+            >
+              <ClipboardList className="w-4 h-4" />
+              {lesson.quiz_best_score ? "Retake Quiz" : "Take Quiz"}
+            </Link>
+          </div>
         )}
 
-        {lesson.subject_name?.toLowerCase().includes("math") && (
+        {/* Other actions row */}
+        <div className="flex flex-wrap items-center gap-3">
+          {completed ? (
+            <div className="flex items-center gap-2 text-success-500 font-semibold">
+              <BookCheck className="w-5 h-5" /> Lesson Complete! 🎉
+            </div>
+          ) : (
+            <button
+              onClick={handleComplete}
+              disabled={completing}
+              className="bg-success-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-emerald-600 transition-all flex items-center gap-2 disabled:opacity-60"
+            >
+              <BookCheck className="w-5 h-5" />
+              {completing ? "Saving..." : "Mark as Complete"}
+            </button>
+          )}
+
           <Link
-            to={`/lessons/${id}/practice`}
-            className="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
+            to={`/chat?lesson=${id}`}
+            className="bg-accent-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-accent-600 transition-all flex items-center gap-2"
           >
-            <Calculator className="w-5 h-5" /> Practice Math
+            <MessageCircle className="w-5 h-5" /> Ask AI Tutor
           </Link>
-        )}
+
+          {lesson.subject_name?.toLowerCase().includes("math") && (
+            <Link
+              to={`/lessons/${id}/practice`}
+              className="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
+            >
+              <Calculator className="w-5 h-5" /> Practice Math
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

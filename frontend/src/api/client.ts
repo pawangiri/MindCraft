@@ -76,6 +76,7 @@ export interface Lesson {
   ai_generated: boolean;
   has_quiz?: boolean;
   quiz_id?: number | null;
+  quiz_best_score?: { score: number; max_score: number; percentage: number } | null;
   created_at: string;
 }
 
