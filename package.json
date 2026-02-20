@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"bun run dev:backend\" \"bun run dev:frontend\"",
-    "dev:backend": "cd backend && uv run python manage.py runserver 5000",
+    "dev:backend": "cd backend && uv run python manage.py runserver 5050",
     "dev:frontend": "cd frontend && bun run dev",
     "install:frontend": "cd frontend && bun install",
     "install:backend": "cd backend && uv sync",
