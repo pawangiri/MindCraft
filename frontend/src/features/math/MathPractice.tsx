@@ -209,7 +209,22 @@ export default function MathPractice() {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
           },
-          body: JSON.stringify({ message: userMsg }),
+          body: JSON.stringify({
+            message: userMsg,
+            context: {
+              problem_text: problem?.problem_text ?? null,
+              topic: session?.topic ?? null,
+              difficulty: problem?.difficulty ?? null,
+              hint: problem?.hint ?? null,
+              evaluation: evaluation
+                ? {
+                    correct: evaluation.correct,
+                    correct_answer: evaluation.correct_answer,
+                    feedback: evaluation.feedback,
+                  }
+                : null,
+            },
+          }),
         }
       );
 
@@ -407,6 +422,8 @@ export default function MathPractice() {
             excalidrawAPI={(a) => setExcalidrawAPI(a)}
             theme="light"
             name="Math Practice"
+            gridModeEnabled={true}
+            initialData={{ appState: { gridSize: 20 } }}
             UIOptions={{
               canvasActions: {
                 loadScene: false,

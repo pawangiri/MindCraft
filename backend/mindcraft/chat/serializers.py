@@ -27,3 +27,4 @@ class ChatSessionSerializer(serializers.ModelSerializer):
 
 class ChatSendSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=2000)
+    context = serializers.DictField(required=False, default=None)

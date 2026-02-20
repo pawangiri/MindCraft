@@ -67,7 +67,8 @@ class ChatSessionViewSet(viewsets.ModelViewSet):
         messages = [{"role": role, "content": content} for role, content in history]
 
         # Build system prompt based on context
-        system = self._get_system_prompt(session, kid_profile)
+        context = send_serializer.validated_data.get("context")
+        system = self._get_system_prompt(session, kid_profile, context=context)
 
         # Stream response via SSE
         def event_stream():
@@ -102,7 +103,7 @@ class ChatSessionViewSet(viewsets.ModelViewSet):
         response["X-Accel-Buffering"] = "no"
         return response
 
-    def _get_system_prompt(self, session, kid_profile):
+    def _get_system_prompt(self, session, kid_profile, context=None):
         """Build system prompt based on chat context."""
         kid_name = kid_profile.display_name
         grade = kid_profile.grade_level
@@ -115,22 +116,31 @@ class ChatSessionViewSet(viewsets.ModelViewSet):
             except Lesson.DoesNotExist:
                 pass
 
-        if session.context_type == ChatSession.ContextType.MATH and session.context_id:
-            try:
-                from mindcraft.math.models import MathPracticeSession
-                practice = MathPracticeSession.objects.get(id=session.context_id)
-                topic = practice.topic
-                # Get the latest problem for context
-                latest = practice.attempts.last()
-                problem_text = latest.problem_text if latest else topic
-                return prompts.math_tutor_system_prompt(kid_name, grade, problem_text, topic)
-            except MathPracticeSession.DoesNotExist:
-                # Fallback: try legacy lesson-based lookup
+        if session.context_type == ChatSession.ContextType.MATH:
+            # Prefer frontend-provided context (has the exact problem the kid sees)
+            if context and context.get("problem_text"):
+                return prompts.math_tutor_system_prompt(
+                    kid_name, grade,
+                    context["problem_text"],
+                    context.get("topic", "math"),
+                    evaluation=context.get("evaluation"),
+                )
+
+            # Fallback: look up from DB
+            if session.context_id:
                 try:
-                    lesson = Lesson.objects.get(id=session.context_id)
-                    topic = lesson.topic.name if lesson.topic else "math"
-                    return prompts.math_tutor_system_prompt(kid_name, grade, lesson.title, topic)
-                except Lesson.DoesNotExist:
-                    pass
+                    from mindcraft.math.models import MathPracticeSession
+                    practice = MathPracticeSession.objects.get(id=session.context_id)
+                    topic = practice.topic
+                    latest = practice.attempts.last()
+                    problem_text = latest.problem_text if latest else topic
+                    return prompts.math_tutor_system_prompt(kid_name, grade, problem_text, topic)
+                except MathPracticeSession.DoesNotExist:
+                    try:
+                        lesson = Lesson.objects.get(id=session.context_id)
+                        topic = lesson.topic.name if lesson.topic else "math"
+                        return prompts.math_tutor_system_prompt(kid_name, grade, lesson.title, topic)
+                    except Lesson.DoesNotExist:
+                        pass
 
         return prompts.tutor_system_prompt(kid_name, grade, age)

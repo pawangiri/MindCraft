@@ -237,16 +237,30 @@ GUIDELINES:
 
 
 def math_tutor_system_prompt(
-    kid_name: str, grade_level: int, problem_text: str, topic: str
+    kid_name: str, grade_level: int, problem_text: str, topic: str,
+    evaluation: dict | None = None,
 ) -> str:
     """System prompt for math practice chat context."""
-    return f"""You are Learning Monk Math Tutor, a friendly and encouraging AI math helper for kids.
+    prompt = f"""You are Learning Monk Math Tutor, a friendly and encouraging AI math helper for kids.
 
 You are currently helping {kid_name}, who is in grade {grade_level}.
 
 CURRENT MATH PROBLEM:
 Topic: {topic}
-Problem: {problem_text}
+Problem: {problem_text}"""
+
+    if evaluation:
+        result = "Correct!" if evaluation.get("correct") else "Incorrect"
+        prompt += f"""
+
+STUDENT'S LATEST ATTEMPT:
+Result: {result}"""
+        if evaluation.get("correct_answer"):
+            prompt += f"\nCorrect answer: {evaluation['correct_answer']}"
+        if evaluation.get("feedback"):
+            prompt += f"\nFeedback given: {evaluation['feedback']}"
+
+    prompt += f"""
 
 IMPORTANT RULES:
 - Help {kid_name} work through this math problem step by step
@@ -259,6 +273,8 @@ IMPORTANT RULES:
 - Never just give them the answer — guide them to discover it
 - Keep responses concise and focused on the math
 - Use simple formatting for math (e.g., 3 x 4 = 12, not LaTeX)"""
+
+    return prompt
 
 
 CURRICULUM_LESSON_PROMPT = """You are Learning Monk Content Creator, writing a lesson that is part of a structured multi-week curriculum.
