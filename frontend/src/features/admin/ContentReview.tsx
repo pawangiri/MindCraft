@@ -82,6 +82,24 @@ export default function ContentReview() {
     setActionLoading(null);
   };
 
+  const handleGenerateQuiz = async (lessonId: number) => {
+    setError(null);
+    setQuizGenerating(lessonId);
+    try {
+      const result = await generateQuiz(lessonId);
+      setLessons((prev) =>
+        prev.map((l) =>
+          l.id === lessonId
+            ? { ...l, has_quiz: true, quiz_id: result.quiz_id }
+            : l
+        )
+      );
+    } catch {
+      setError("Failed to generate quiz. Please try again.");
+    }
+    setQuizGenerating(null);
+  };
+
   const handleReject = async (id: number) => {
     setError(null);
     setActionLoading(id);
@@ -278,6 +296,24 @@ export default function ContentReview() {
                       <Zap className="w-3.5 h-3.5" /> {lesson.difficulty}
                     </span>
                     <span className="text-xs">Grade {lesson.grade_level}</span>
+                    {lesson.has_quiz ? (
+                      <span className="flex items-center gap-1 text-green-600">
+                        <ClipboardList className="w-3.5 h-3.5" /> Quiz
+                      </span>
+                    ) : lesson.status === "published" ? (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleGenerateQuiz(lesson.id); }}
+                        disabled={quizGenerating === lesson.id}
+                        className="flex items-center gap-1 text-amber-600 hover:text-amber-700 transition-colors"
+                      >
+                        {quizGenerating === lesson.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <ClipboardList className="w-3.5 h-3.5" />
+                        )}
+                        {quizGenerating === lesson.id ? "Generating..." : "Generate Quiz"}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
 
