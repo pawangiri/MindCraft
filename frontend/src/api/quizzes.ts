@@ -29,6 +29,17 @@ export async function submitQuiz(
   return data;
 }
 
+export async function generateQuiz(
+  lessonId: number,
+  numQuestions: number = 5,
+): Promise<{ quiz_id: number; title: string; questions: number }> {
+  const { data } = await api.post("/quizzes/generate/", {
+    lesson_id: lessonId,
+    num_questions: numQuestions,
+  });
+  return data;
+}
+
 export async function getHint(
   quizId: number | string,
   questionId: number,
