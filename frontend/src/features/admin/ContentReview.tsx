@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import api, { type Lesson } from "../../api/client";
+import { generateQuiz } from "../../api/quizzes";
 import {
   ArrowLeft, CheckCircle, XCircle, Pencil, Eye, Clock, Zap, Sparkles,
-  Save, Loader2, ChevronUp, AlertCircle,
+  Save, Loader2, ChevronUp, AlertCircle, ClipboardList,
 } from "lucide-react";
 
 type StatusFilter = "all" | "draft" | "review" | "published";
@@ -21,6 +22,8 @@ export default function ContentReview() {
   const [error, setError] = useState<string | null>(null);
   const [expandLoading, setExpandLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [publishConfirm, setPublishConfirm] = useState<number | null>(null);
+  const [quizGenerating, setQuizGenerating] = useState<number | null>(null);
 
   const fetchLessons = () => {
     setLoading(true);
@@ -39,14 +42,40 @@ export default function ContentReview() {
     return l.status === filter;
   });
 
-  const handlePublish = async (id: number) => {
+  const handlePublishClick = (lesson: Lesson) => {
+    if (lesson.has_quiz) {
+      handlePublish(lesson.id, false);
+    } else {
+      setPublishConfirm(lesson.id);
+    }
+  };
+
+  const handlePublish = async (id: number, withQuiz: boolean) => {
     setError(null);
+    setPublishConfirm(null);
     setActionLoading(id);
     try {
       await api.post(`/lessons/${id}/publish/`);
       setLessons((prev) =>
         prev.map((l) => (l.id === id ? { ...l, status: "published" } : l))
       );
+
+      if (withQuiz) {
+        setQuizGenerating(id);
+        try {
+          const result = await generateQuiz(id);
+          setLessons((prev) =>
+            prev.map((l) =>
+              l.id === id
+                ? { ...l, has_quiz: true, quiz_id: result.quiz_id }
+                : l
+            )
+          );
+        } catch {
+          setError("Lesson published, but quiz generation failed. You can generate it later.");
+        }
+        setQuizGenerating(null);
+      }
     } catch {
       setError("Failed to publish lesson. Please try again.");
     }
@@ -257,7 +286,7 @@ export default function ContentReview() {
                   {lesson.status !== "published" && (
                     <>
                       <button
-                        onClick={() => handlePublish(lesson.id)}
+                        onClick={() => handlePublishClick(lesson)}
                         disabled={actionLoading === lesson.id}
                         className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-all"
                         title="Publish"
@@ -372,6 +401,38 @@ export default function ContentReview() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Publish confirmation dialog */}
+      {publishConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Publish Lesson</h3>
+            <p className="text-gray-600 text-sm mb-6">
+              Would you like to auto-generate a quiz for this lesson? Students learn better when they can test their knowledge.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => handlePublish(publishConfirm, true)}
+                className="w-full bg-green-500 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" /> Publish with Quiz
+              </button>
+              <button
+                onClick={() => handlePublish(publishConfirm, false)}
+                className="w-full bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+              >
+                Publish without Quiz
+              </button>
+              <button
+                onClick={() => setPublishConfirm(null)}
+                className="w-full text-gray-500 px-4 py-2 text-sm hover:text-gray-700 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
