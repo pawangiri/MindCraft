@@ -43,13 +43,50 @@ def _clean_api_error(e: Exception) -> str:
     return msg
 
 
-class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
+class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.filter(is_active=True)
     serializer_class = SubjectSerializer
 
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [IsAuthenticated()]
+        return [IsAdminUser()]
 
-class TopicViewSet(viewsets.ReadOnlyModelViewSet):
+    def destroy(self, request, *args, **kwargs):
+        subject = self.get_object()
+        topic_count = subject.topics.count()
+        if topic_count > 0:
+            return Response(
+                {"error": f"Cannot delete this subject — it has {topic_count} topic(s). Remove them first."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"], url_path="suggest-topics")
+    def suggest_topics(self, request, pk=None):
+        """AI-suggest topics for this subject."""
+        subject = self.get_object()
+        try:
+            suggestions = generators.suggest_topics(
+                subject_name=subject.name,
+                subject_description=subject.description,
+            )
+            return Response({"topics": suggestions})
+        except Exception as e:
+            logger.exception("Topic suggestion failed for subject %s", subject.id)
+            return Response(
+                {"error": _clean_api_error(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class TopicViewSet(viewsets.ModelViewSet):
     serializer_class = TopicSerializer
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [IsAuthenticated()]
+        return [IsAdminUser()]
 
     def get_queryset(self):
         qs = Topic.objects.all()
@@ -57,6 +94,16 @@ class TopicViewSet(viewsets.ReadOnlyModelViewSet):
         if subject:
             qs = qs.filter(subject_id=subject)
         return qs
+
+    def destroy(self, request, *args, **kwargs):
+        topic = self.get_object()
+        lesson_count = topic.lessons.count()
+        if lesson_count > 0:
+            return Response(
+                {"error": f"Cannot delete this topic — it has {lesson_count} lesson(s). Remove them first."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
 
 
 class LessonViewSet(viewsets.ModelViewSet):

@@ -310,3 +310,30 @@ Make it engaging, build on what came before, and set up what comes next. Appropr
         "description": lesson_description or f"Week {week_number} lesson about {lesson_title}",
         "estimated_minutes": 15 if difficulty == "easy" else 20 if difficulty == "medium" else 25,
     }
+
+
+def suggest_topics(subject_name: str, subject_description: str = "") -> list[dict]:
+    """Suggest topics for a subject using AI.
+
+    Returns:
+        List of {"name": str, "description": str, "grade_level_min": int, "grade_level_max": int}
+    """
+    user_message = f"""Suggest educational topics for this subject:
+
+Subject: {subject_name}
+{f"Description: {subject_description}" if subject_description else ""}
+
+Remember to respond with ONLY valid JSON."""
+
+    response = client.chat_completion(
+        messages=[{"role": "user", "content": user_message}],
+        system=prompts.TOPIC_SUGGESTIONS_PROMPT,
+        model=settings.AI_MODEL,
+    )
+
+    json_str = response.strip()
+    if json_str.startswith("```"):
+        json_str = "\n".join(json_str.split("\n")[1:-1])
+
+    data = json.loads(json_str)
+    return data.get("topics", [])

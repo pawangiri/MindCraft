@@ -28,6 +28,8 @@ import {
   Video,
   BookOpen,
 } from "lucide-react";
+import SubjectPicker from "../../components/SubjectPicker";
+import TopicPicker from "../../components/TopicPicker";
 
 const STEPS = [
   "Topic Input",
@@ -675,39 +677,27 @@ export default function ResearchPipeline() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Subject
             </label>
-            <select
+            <SubjectPicker
+              subjects={subjects}
               value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="">Select a subject...</option>
-              {subjects.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.icon} {s.name}
-                </option>
-              ))}
-            </select>
+              onChange={setSubjectId}
+              onSubjectsChange={() => api.get("/subjects/").then((r) => setSubjects(r.data.results ?? r.data))}
+              onTopicsChange={() => { if (subjectId) api.get(`/topics/?subject=${subjectId}`).then((r) => setTopics(r.data.results ?? r.data)); }}
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Topic
             </label>
-            <select
+            <TopicPicker
+              topics={topics}
               value={topicId}
-              onChange={(e) => handleTopicChange(e.target.value)}
+              onChange={handleTopicChange}
+              onTopicsChange={() => { if (subjectId) api.get(`/topics/?subject=${subjectId}`).then((r) => setTopics(r.data.results ?? r.data)); }}
+              subjectId={subjectId}
               disabled={!subjectId}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="">
-                {subjectId ? "Select a topic..." : "Select a subject first"}
-              </option>
-              {topics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="md:col-span-2">

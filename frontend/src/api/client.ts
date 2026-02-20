@@ -142,6 +142,7 @@ export interface Quiz {
 export interface Topic {
   id: number;
   name: string;
+  description?: string;
   subject: number;
   subject_name: string;
   grade_level_min: number;
