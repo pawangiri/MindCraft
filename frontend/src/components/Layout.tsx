@@ -6,6 +6,7 @@ import {
   Brain, BookOpen, MessageCircle, PenTool, Trophy,
   LayoutDashboard, LogOut, Palette, ClipboardList, Settings,
   Sparkles, Search, FileCheck, GraduationCap, Menu, X, Calculator,
+  GitCommit,
 } from "lucide-react";
 
 const kidNavItems = [
@@ -119,6 +120,29 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+
+        {/* Build info (admin only) */}
+        {isAdmin && (
+          <div className="px-3 pb-1 group relative">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-white/30 font-mono">
+              <GitCommit className="w-3.5 h-3.5 shrink-0" />
+              <span>{__COMMIT_HASH__}</span>
+              <span className="text-white/15">·</span>
+              <span>{new Date(__BUILD_TIME__).toLocaleDateString()}</span>
+            </div>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-3 mb-1 hidden group-hover:block z-50">
+              <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg border border-white/10 whitespace-nowrap">
+                <div className="font-semibold mb-1">Build Info</div>
+                <div className="text-white/70 space-y-0.5">
+                  <div>Commit: <span className="text-white/90 font-mono">{__COMMIT_HASH__}</span></div>
+                  <div className="max-w-[250px] truncate">Message: {__COMMIT_MESSAGE__}</div>
+                  <div>Built: {new Date(__BUILD_TIME__).toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Logout */}
         <div className="p-3 border-t border-white/10">

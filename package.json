@@ -12,7 +12,8 @@
     "makemigrations": "cd backend && uv run python manage.py makemigrations",
     "seed": "cd backend && uv run python manage.py seed",
     "build": "cd frontend && bun run build",
-    "lint": "cd frontend && bun run lint"
+    "lint": "cd frontend && bun run lint",
+    "deploy": "ssh root@10.25.1.113 deploy"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
