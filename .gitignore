@@ -60,5 +60,8 @@ blob-report/
 *.jpeg
 *.jpg
 
+# Allow favicon and OG assets
+!frontend/public/*.png
+
 # Claude Code
 .claude/
