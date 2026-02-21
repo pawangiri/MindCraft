@@ -198,9 +198,27 @@ def _cli_stream(prompt, system="", model=None):
 
 
 def _get_api_client():
-    """Get an Anthropic client instance."""
+    """Get an Anthropic client instance.
+
+    Uses ANTHROPIC_API_KEY if set, otherwise falls back to
+    CLAUDE_CODE_OAUTH_TOKEN for OAuth-based auth.
+    """
     import anthropic
-    return anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+    api_key = settings.ANTHROPIC_API_KEY
+    if not api_key or api_key.startswith("your-"):
+        # Fall back to OAuth token
+        api_key = os.getenv("CLAUDE_CODE_OAUTH_TOKEN", "")
+
+    if not api_key:
+        raise RuntimeError(
+            "No Anthropic credentials found. Set ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN."
+        )
+
+    return anthropic.Anthropic(api_key=api_key)
+
+
+NON_STREAMING_MAX_TOKENS = 8192  # Keep non-streaming calls under SDK timeout limit
 
 
 def _api_chat_completion(messages, system, model, max_tokens, stream):
@@ -219,6 +237,10 @@ def _api_chat_completion(messages, system, model, max_tokens, stream):
 
     if stream:
         return client.messages.stream(**kwargs)
+
+    # Cap non-streaming max_tokens to avoid SDK timeout errors
+    if kwargs["max_tokens"] > NON_STREAMING_MAX_TOKENS:
+        kwargs["max_tokens"] = NON_STREAMING_MAX_TOKENS
 
     response = client.messages.create(**kwargs)
     return response.content[0].text
