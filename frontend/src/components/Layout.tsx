@@ -26,7 +26,7 @@ const adminNavItems = [
   { to: "/admin/review", icon: FileCheck, label: "Content Review" },
   { to: "/admin/curriculum", icon: GraduationCap, label: "Curriculum" },
   { to: "/lessons", icon: BookOpen, label: "Lessons" },
-  { to: "/chat", icon: MessageCircle, label: "Chat Logs" },
+  { to: "/admin/chat-logs", icon: MessageCircle, label: "Chat Logs" },
   { to: "/quizzes", icon: ClipboardList, label: "Quizzes" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];

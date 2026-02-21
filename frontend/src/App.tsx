@@ -18,6 +18,7 @@ import LessonGenerator from "./features/admin/LessonGenerator";
 import ResearchPipeline from "./features/admin/ResearchPipeline";
 import ContentReview from "./features/admin/ContentReview";
 import CurriculumPlanner from "./features/admin/CurriculumPlanner";
+import ChatLogs from "./features/admin/ChatLogs";
 import MathPractice from "./features/math/MathPractice";
 import MathPracticeList from "./features/math/MathPracticeList";
 import MathPracticeNew from "./features/math/MathPracticeNew";
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/admin/research" element={<ResearchPipeline />} />
           <Route path="/admin/review" element={<ContentReview />} />
           <Route path="/admin/curriculum" element={<CurriculumPlanner />} />
+          <Route path="/admin/chat-logs" element={<ChatLogs />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />

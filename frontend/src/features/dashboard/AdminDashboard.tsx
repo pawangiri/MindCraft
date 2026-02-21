@@ -2,20 +2,31 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/client";
+import type { KidProfile } from "../../api/client";
 import { Users, BookOpen, ClipboardList, MessageCircle, ExternalLink, Sparkles, Search, FileCheck } from "lucide-react";
 
 export default function AdminDashboard() {
   const user = useAuthStore((s) => s.user);
-  const [stats, setStats] = useState({ kids: 0, lessons: 0, subjects: 0 });
+  const [stats, setStats] = useState({ kids: 0, lessons: 0, subjects: 0, chatSessions: 0 });
+  const [kids, setKids] = useState<KidProfile[]>([]);
 
   useEffect(() => {
     Promise.all([
+      api.get("/kids/").then((r) => {
+        const data = r.data.results ?? r.data;
+        setKids(data);
+        setStats((s) => ({ ...s, kids: data.length }));
+      }),
       api.get("/lessons/").then((r) => {
         const data = r.data.results || r.data;
         setStats((s) => ({ ...s, lessons: data.length }));
       }),
       api.get("/subjects/").then((r) => {
         setStats((s) => ({ ...s, subjects: r.data.length }));
+      }),
+      api.get("/chat/sessions/").then((r) => {
+        const data = r.data.results ?? r.data;
+        setStats((s) => ({ ...s, chatSessions: data.length }));
       }),
     ]).catch(() => {});
   }, []);
@@ -33,7 +44,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <Users className="w-6 h-6 text-blue-500 mb-2" />
-          <div className="text-2xl font-bold">3</div>
+          <div className="text-2xl font-bold">{stats.kids}</div>
           <div className="text-sm text-gray-500">Kids</div>
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -46,11 +57,11 @@ export default function AdminDashboard() {
           <div className="text-2xl font-bold">{stats.subjects}</div>
           <div className="text-sm text-gray-500">Subjects</div>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <Link to="/admin/chat-logs" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
           <MessageCircle className="w-6 h-6 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold">—</div>
+          <div className="text-2xl font-bold">{stats.chatSessions}</div>
           <div className="text-sm text-gray-500">Chat Sessions</div>
-        </div>
+        </Link>
       </div>
 
       {/* Quick Actions */}
@@ -129,18 +140,22 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Login info */}
-      <div className="bg-blue-50 rounded-2xl p-5">
-        <h3 className="font-semibold text-blue-800 mb-2">🔑 Kid Accounts</h3>
-        <div className="text-sm text-blue-700 space-y-1">
-          <p>• <strong>Alex</strong> (Grade 3): alex / alex123</p>
-          <p>• <strong>Sam</strong> (Grade 6): sam / sam123</p>
-          <p>• <strong>Jordan</strong> (Grade 9): jordan / jordan123</p>
+      {/* Kid Accounts */}
+      {kids.length > 0 && (
+        <div className="bg-blue-50 rounded-2xl p-5">
+          <h3 className="font-semibold text-blue-800 mb-2">👧 Kid Profiles</h3>
+          <div className="text-sm text-blue-700 space-y-1">
+            {kids.map((kid) => (
+              <p key={kid.id}>
+                • {kid.avatar} <strong>{kid.display_name}</strong> (Grade {kid.grade_level})
+              </p>
+            ))}
+          </div>
+          <p className="text-xs text-blue-500 mt-2">
+            You can manage these in the Django admin panel.
+          </p>
         </div>
-        <p className="text-xs text-blue-500 mt-2">
-          You can manage these in the Django admin panel.
-        </p>
-      </div>
+      )}
     </div>
   );
 }

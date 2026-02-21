@@ -12,10 +12,12 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 class ChatSessionSerializer(serializers.ModelSerializer):
     last_message = serializers.SerializerMethodField()
     message_count = serializers.SerializerMethodField()
+    kid_name = serializers.CharField(source="kid.display_name", read_only=True)
+    kid_avatar = serializers.CharField(source="kid.avatar", read_only=True)
 
     class Meta:
         model = ChatSession
-        fields = ["id", "title", "context_type", "context_id", "is_active", "created_at", "updated_at", "last_message", "message_count"]
+        fields = ["id", "kid", "kid_name", "kid_avatar", "title", "context_type", "context_id", "is_active", "created_at", "updated_at", "last_message", "message_count"]
 
     def get_last_message(self, obj):
         msg = obj.messages.last()
