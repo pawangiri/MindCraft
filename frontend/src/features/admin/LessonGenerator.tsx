@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api, { type Subject, type Topic } from "../../api/client";
 import {
   Sparkles, Eye, Pencil, Save, Send, ArrowLeft, Loader2,
@@ -278,7 +278,7 @@ export default function LessonGenerator() {
               </h3>
               <p className="text-gray-500 text-sm mb-4">{editDescription}</p>
               <div className="prose max-w-none">
-                <ReactMarkdown>{editContent}</ReactMarkdown>
+                <Markdown>{editContent}</Markdown>
               </div>
             </div>
           )}

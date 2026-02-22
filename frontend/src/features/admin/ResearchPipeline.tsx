@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api, {
   type Subject,
   type Topic,
@@ -809,7 +809,7 @@ export default function ResearchPipeline() {
             />
           ) : (
             <div className="prose max-w-none text-sm">
-              <ReactMarkdown>{editSummary}</ReactMarkdown>
+              <Markdown>{editSummary}</Markdown>
             </div>
           )}
         </div>
@@ -1052,7 +1052,7 @@ export default function ResearchPipeline() {
                   {lessonDescription}
                 </p>
                 <div className="prose max-w-none">
-                  <ReactMarkdown>{lessonContent}</ReactMarkdown>
+                  <Markdown>{lessonContent}</Markdown>
                 </div>
               </div>
             )}
@@ -1312,7 +1312,7 @@ export default function ResearchPipeline() {
               </h3>
               <p className="text-gray-500 text-sm mb-4">{lessonDescription}</p>
               <div className="prose max-w-none">
-                <ReactMarkdown>{lessonContent}</ReactMarkdown>
+                <Markdown>{lessonContent}</Markdown>
               </div>
             </div>
           ) : (

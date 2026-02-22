@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api from "../../api/client";
 import type {
   CurriculumPlan,
@@ -1082,9 +1082,9 @@ export default function CurriculumPlanner() {
                     <div className="px-4 pb-4 border-t border-gray-100">
                       {hasContent ? (
                         <div className="prose max-w-none text-sm mt-4">
-                          <ReactMarkdown>
+                          <Markdown>
                             {currLesson.lesson_content}
-                          </ReactMarkdown>
+                          </Markdown>
                         </div>
                       ) : (
                         <div className="text-center py-6 text-gray-400 text-sm">
@@ -1280,9 +1280,9 @@ export default function CurriculumPlanner() {
                       {isExpanded && currLesson?.lesson_content && (
                         <div className="px-4 pb-4 border-t border-gray-100">
                           <div className="prose max-w-none text-sm mt-3">
-                            <ReactMarkdown>
+                            <Markdown>
                               {currLesson.lesson_content}
-                            </ReactMarkdown>
+                            </Markdown>
                           </div>
                         </div>
                       )}

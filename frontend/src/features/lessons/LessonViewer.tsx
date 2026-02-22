@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api, { type Lesson } from "../../api/client";
 import { cn } from "../../utils/cn";
 import {
@@ -87,7 +87,7 @@ export default function LessonViewer() {
       {/* Lesson content */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <div className="prose max-w-none">
-          <ReactMarkdown>{lesson.content || ""}</ReactMarkdown>
+          <Markdown>{lesson.content || ""}</Markdown>
         </div>
       </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import {
   ArrowLeft,
   Send,
@@ -584,7 +584,7 @@ function ChatBubble({
           <p>{message.content}</p>
         ) : (
           <div className="prose prose-sm max-w-none">
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <Markdown>{message.content}</Markdown>
           </div>
         )}
         {isStreaming && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api, { type Lesson } from "../../api/client";
 import { generateQuiz } from "../../api/quizzes";
 import {
@@ -376,9 +376,9 @@ export default function ContentReview() {
                     </div>
                   ) : (
                     <div className="prose max-w-none text-sm">
-                      <ReactMarkdown>
+                      <Markdown>
                         {lesson.content || "No content available."}
-                      </ReactMarkdown>
+                      </Markdown>
                     </div>
                   )}
                 </div>

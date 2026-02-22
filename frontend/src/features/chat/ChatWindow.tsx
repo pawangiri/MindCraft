@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api, { type ChatSession, type ChatMessage } from "../../api/client";
 import { cn } from "../../utils/cn";
 import { Send, Plus, Bot, User, Loader2, MessageSquare, Trash2 } from "lucide-react";
@@ -317,7 +317,7 @@ function MessageBubble({ message, isStreaming }: { message: ChatMessage; isStrea
           <p>{message.content}</p>
         ) : (
           <div className="prose prose-sm max-w-none">
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <Markdown>{message.content}</Markdown>
           </div>
         )}
         {isStreaming && (

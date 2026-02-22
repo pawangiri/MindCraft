@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "../../components/Markdown";
 import api, { type JournalEntry, type Lesson } from "../../api/client";
 import {
   ArrowLeft, Save, Sparkles, Loader2, BookOpen, Trash2, AlertCircle,
@@ -221,7 +221,7 @@ export default function JournalEditor() {
           {showPreview ? (
             <div className="min-h-[300px] p-4 border border-gray-200 rounded-xl bg-gray-50">
               <div className="prose max-w-none">
-                <ReactMarkdown>{content || "*Nothing to preview yet...*"}</ReactMarkdown>
+                <Markdown>{content || "*Nothing to preview yet...*"}</Markdown>
               </div>
             </div>
           ) : (
@@ -298,7 +298,7 @@ export default function JournalEditor() {
             </div>
           ) : (
             <div className="prose max-w-none">
-              <ReactMarkdown>{aiFeedback}</ReactMarkdown>
+              <Markdown>{aiFeedback}</Markdown>
             </div>
           )}
         </div>
